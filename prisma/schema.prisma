@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  username  String  @unique
+  password  String
+  email     String  @unique
+  superuser Boolean
+  cart      Cart?
+}
+
+model Product {
+  // additonal model required for individual products skipping for now
+  id             Int              @id @default(autoincrement())
+  name           String
+  image          String
+  description    String
+  price          Int
+  CartProductMap CartProductMap[]
+}
+
+model Order {
+  id            Int      @id @default(autoincrement())
+  // create a type table for this later 
+  status        String
+  orderDate     DateTime
+  //create a type table for this later
+  paymentMethod String
+}
+
+model Coupon {
+  id            Int             @id @default(autoincrement())
+  code          String          @unique
+  minCartValue  String
+  minOrders     String
+  CartCouponMap CartCouponMap[]
+}
+
+model Cart {
+  id             Int              @id @default(autoincrement())
+  userId         Int              @unique
+  user           User             @relation(fields: [userId], references: [id])
+  CartProductMap CartProductMap[]
+  CartCouponMap  CartCouponMap[]
+}
+
+model CartProductMap {
+  id        Int     @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model CartCouponMap {
+  id       Int    @id @default(autoincrement())
+  cartId   Int
+  couponId Int
+  cart     Cart   @relation(fields: [cartId], references: [id])
+  coupon   Coupon @relation(fields: [couponId], references: [id])
+}
