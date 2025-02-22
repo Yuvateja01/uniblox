@@ -27,6 +27,13 @@ userRouter.post("/signup",async (req:Request,res:Response)=>{
                 "superuser":false
             }
         })
+
+        //create a cart for user
+        const cart = await prisma.cart.create({
+            data:{
+                userId:user.id
+            }
+        })
         res.status(201).json({"success":"User Created Successfully"})
         return;
     }

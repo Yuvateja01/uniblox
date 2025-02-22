@@ -15,6 +15,7 @@ function customRateLimiter(req:Request,res:Response,next:NextFunction){
     .then((rateLimiterRes) => {
       // 2 points consumed
       console.log(rateLimiterRes)
+      console.log("jumping from ratelimiyer")
       next();
     })
     .catch((rateLimiterRes) => {

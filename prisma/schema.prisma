@@ -20,6 +20,7 @@ model User {
   email     String  @unique
   superuser Boolean
   cart      Cart?
+  Order     Order[]
 }
 
 model Product {
@@ -31,7 +32,7 @@ model Product {
   price          Int
   CartProductMap CartProductMap[]
 }
-
+// Need an other table to map all the cart products to the Order when placed(No cascade)
 model Order {
   id            Int      @id @default(autoincrement())
   // create a type table for this later 
@@ -39,6 +40,9 @@ model Order {
   orderDate     DateTime
   //create a type table for this later
   paymentMethod String
+  price         Int
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Coupon {
@@ -52,7 +56,9 @@ model Coupon {
 model Cart {
   id             Int              @id @default(autoincrement())
   userId         Int              @unique
-  user           User             @relation(fields: [userId], references: [id])
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  price          Int              @default(0)
+  couponDiscount Int              @default(0)
   CartProductMap CartProductMap[]
   CartCouponMap  CartCouponMap[]
 }
@@ -61,14 +67,15 @@ model CartProductMap {
   id        Int     @id @default(autoincrement())
   cartId    Int
   productId Int
-  cart      Cart    @relation(fields: [cartId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model CartCouponMap {
   id       Int    @id @default(autoincrement())
   cartId   Int
   couponId Int
-  cart     Cart   @relation(fields: [cartId], references: [id])
-  coupon   Coupon @relation(fields: [couponId], references: [id])
+  cart     Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
 }
