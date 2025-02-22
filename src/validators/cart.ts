@@ -9,6 +9,10 @@ const removeProductSchema = z.object({
     productId:z.number()
 })
 
+const applyCoupon = z.object({
+    couponId:z.number()
+})
+
 export const cartSchema ={
-    addProductSchema,removeProductSchema
+    addProductSchema,removeProductSchema,applyCoupon
 }

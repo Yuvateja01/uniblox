@@ -32,12 +32,13 @@ model Product {
   price          Int
   CartProductMap CartProductMap[]
 }
+
 // Need an other table to map all the cart products to the Order when placed(No cascade)
 model Order {
   id            Int      @id @default(autoincrement())
   // create a type table for this later 
   status        String
-  orderDate     DateTime
+  orderDate     DateTime @default(now())
   //create a type table for this later
   paymentMethod String
   price         Int
@@ -46,11 +47,12 @@ model Order {
 }
 
 model Coupon {
-  id            Int             @id @default(autoincrement())
-  code          String          @unique
-  minCartValue  String
-  minOrders     String
-  CartCouponMap CartCouponMap[]
+  id                 Int    @id @default(autoincrement())
+  code               String @unique
+  minCartValue       Int
+  minOrders          Int
+  discountPercentage Int
+  Cart               Cart[]
 }
 
 model Cart {
@@ -59,8 +61,9 @@ model Cart {
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   price          Int              @default(0)
   couponDiscount Int              @default(0)
+  couponId       Int?
+  coupon         Coupon?          @relation(fields: [couponId], references: [id], onDelete: Cascade)
   CartProductMap CartProductMap[]
-  CartCouponMap  CartCouponMap[]
 }
 
 model CartProductMap {
@@ -70,12 +73,4 @@ model CartProductMap {
   quantity  Int
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-model CartCouponMap {
-  id       Int    @id @default(autoincrement())
-  cartId   Int
-  couponId Int
-  cart     Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  coupon   Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
 }

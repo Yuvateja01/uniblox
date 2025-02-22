@@ -232,4 +232,105 @@ cartRouter .post("/remove",async(req:Request,res:Response)=>{
 })
 
 
+
+cartRouter.get("/coupons",async(req:Request,res:Response)=>{
+
+    //Every Nth order can be tweaked
+    const NORDERS:number = 5
+
+    try{
+    const cart = await prisma.cart.findFirst({
+        where:{
+            userId:res.locals.userid
+        }
+    })
+
+    const orderCount = await prisma.order.count({
+        where:{
+            userId:res.locals.userid,
+            status:"DELIVERED"
+        }
+    })
+    if (cart && orderCount && (orderCount+1)%NORDERS == 0){
+    const eligibleCoupons = await prisma.coupon.findMany({
+        where:{
+            minCartValue:{
+                lt:cart.price,
+            },
+            minOrders:{
+                lt:orderCount,
+            }
+        }
+    })
+    res.status(200).send({"success":eligibleCoupons})
+    return;
+    }
+    else{
+        res.status(500).send({"errorMessage":"Unable to get Coupons"})
+        return;
+    }
+}
+    catch(error){
+        res.status(500).send({"errorMessage":"Unable to get Coupons"})
+    }
+
+})
+
+cartRouter.post("/coupons",async(req:Request,res:Response)=>{
+    try{
+    const couponBody = req.body;
+    //Every Nth order can be tweaked
+    const NORDERS:number = 5
+
+    if(!cartSchema.applyCoupon.safeParse(couponBody).success){
+        res.status(400).json({"errorMessage":"Improper request body sent"})
+        return;
+    }
+
+    const cart = await prisma.cart.findFirst({
+        where:{
+            userId:res.locals.userid
+        }
+    })
+
+    const orderCount = await prisma.order.count({
+        where:{
+            userId:res.locals.userid,
+            status:"DELIVERED"
+        }
+    })
+
+    const coupon = await prisma.coupon.findFirst({
+        where:{
+        id:couponBody.couponId
+        }
+    })
+
+    if (coupon && cart && orderCount && cart.price>coupon.minCartValue && orderCount>coupon.minOrders && (orderCount+1)%NORDERS == 0){
+        const multiplier = coupon.discountPercentage/100
+        const discount = cart.price*multiplier
+
+        //create coupon association to user via Table
+        const cartUpdate = await prisma.cart.update({
+            where:{
+                id:cart.id
+            },
+            data:{
+                couponId:coupon.id,
+                price:cart.price-discount
+            }
+        })
+
+        res.status(200).send("Coupon applied successfully")
+        return;
+
+        //update cart pricing
+
+    }
+    }
+    catch{
+        res.status(500).send({"errorMessage":"Unable to get Coupons"})
+    }
+})
+
 export default cartRouter;
