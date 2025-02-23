@@ -9,7 +9,13 @@ import customRateLimiter from "./middlewares/ratelimiter";
 import productRouter from "./routes/product";
 import cartRouter from "./routes/cart";
 
-dotenv.config()
+if (process.env.NODE_ENV == 'test') {
+    dotenv.config({ path: '.env.test' });
+  } else {
+    dotenv.config({ path: '.env' });
+  }
+
+
 const app = express()
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -28,6 +34,6 @@ app.get("/test",(req:Request,res:Response)=>{
     res.send("Test Endpoint")
 })
 
-app.listen(3000,()=>{
-    console.log("server running on port 3000")
-})
+
+export default app
+
